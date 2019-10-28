@@ -6,6 +6,11 @@ class Game
         @number_of_players = set_number_of_players(number_of_players)
         @score = Array.new(number_of_players, 0)    # for storing total score of all players inn that gaming session
     end
+
+    # getter for all score
+    def get_all_score
+        @score
+    end
     
     # setter for number_of_players
     def set_number_of_players(number_of_players)
@@ -37,13 +42,14 @@ class Game
             if dice_heads.count(dice_value) >= 3
                 # score for all numbers with occurance of atleast thrice
                 if dice_value == 1
-                    # special case
+                    # special case defined for head value '1'
                     turn_score += 1000
                 else
                     # generic for all other numbers
                     turn_score += dice_value * 100
+                    if dice_value != 5 then non_scoring_counter -= 3 end
                 end
-                non_scoring_counter -= 3
+                # 
             end
             if dice_value == 1 or dice_value == 5
                 if dice_value == 1 then turn_score += (dice_heads.count(dice_value) % 3) * 100 else turn_score += (dice_heads.count(dice_value) % 3) * 50 end
@@ -51,7 +57,7 @@ class Game
                 non_scoring_counter += 1
             end
             
-            # FIXME:
+            # FIXME: Below line doesnt work. Figure out why?
             # dice_heads.delete(dice_value) #on value [1, 2, 1, 2, 5]
             dice_heads -= [dice_value]
         end
@@ -102,9 +108,10 @@ class Game
         is_completed = false
         is_final_round = false
         turn_counter = 1
-        
+        # TODO: add "start the game" condition
         until is_completed
-            puts "Turn: #{turn_counter}\n--------"
+            if is_final_round then "Final round" else puts "Turn: #{turn_counter}" end
+            puts "--------"
             
             @number_of_players.times {
                 |player_id|
@@ -139,20 +146,27 @@ end # of class
 
 
 
+want_to_test = true
 
 
-print "Enter number of players: "
-game_object = Game.new(gets.to_i)
+if not want_to_test
+    print "Enter number of players: "
+    game_object = Game.new(gets.to_i)
 
-if game_object.get_number_of_players > 1
-    puts "starting the game"
-    game_object.main_game
-    puts "final scores are:"
-    puts game_object.score
+    if game_object.get_number_of_players > 1
+        puts "starting the game"
+        game_object.main_game
+        puts "final scores are:"
+        puts game_object.get_all_score
+        #TODO: handle draw situation
+        puts "Winner of this game is: Player #{game_object.get_all_score.each_with_index.max[1]}"
+
+    else
+        puts "Insufficient players to start the game ):"
+    end
 else
-    puts "Insufficient players to start the game ):"
-end
-
+    game_object = Game.new(2)
+    puts game_object.score_calculator([4,6,3,3,3])
 # Testing code here
 
 # puts game_object.get_number_of_players
@@ -160,3 +174,4 @@ end
 # puts "dice role gave #{x}"
 
 # puts "final score: #{game_object.score_calculator(x)}"
+end

@@ -1,7 +1,31 @@
+
+### Tweakable variables as per desired problem statement.
+
+# score required to enter final round.
+END_GAME_SCORE= 3000
+
+# score required from a player to start accumulating points.
+FIRST_TURN_MIN_SCORE = 300
+
+# minimum number of players required to start the game.
+MIN_PLAYERS_REQUIRED = 2
+
+# score for three 1's.
+SCORE_FOR_ONES_TRIPLET = 1000
+
+# score muktipler for triplet for numbers other than 1.
+SCORE_FOR_OTHER_NUMBERS_TRIPLET = 100
+
+# score for single occurance of 1.
+SCORE_FOR_SINGLE_ONE =100
+
+# score for single occurance of 5.
+SCORE_FOR_SINGLE_FIVE = 50
+
+
 class Game
     # contains methods and vars which holds the state if the game.
     
-
     def initialize(number_of_players)
         @number_of_players = set_number_of_players(number_of_players)
         @score = Array.new(number_of_players, 0)    # for storing total score of all players inn that gaming session
@@ -37,22 +61,26 @@ class Game
     # core scoring mechanism
     def score_calculator(dice_heads)
         turn_score = 0
-        non_scoring_counter = 0 # FIXME:
+        non_scoring_counter = 0
         dice_heads.each do |dice_value|
             if dice_heads.count(dice_value) >= 3
                 # score for all numbers with occurance of atleast thrice
                 if dice_value == 1
                     # special case defined for head value '1'
-                    turn_score += 1000
+                    turn_score += SCORE_FOR_ONES_TRIPLET
                 else
                     # generic for all other numbers
-                    turn_score += dice_value * 100
+                    turn_score += dice_value * SCORE_FOR_OTHER_NUMBERS_TRIPLET
                     if dice_value != 5 then non_scoring_counter -= 3 end
                 end
                 # 
             end
             if dice_value == 1 or dice_value == 5
-                if dice_value == 1 then turn_score += (dice_heads.count(dice_value) % 3) * 100 else turn_score += (dice_heads.count(dice_value) % 3) * 50 end
+                if dice_value == 1
+                    turn_score += (dice_heads.count(dice_value) % 3) * SCORE_FOR_SINGLE_ONE
+                else
+                    turn_score += (dice_heads.count(dice_value) % 3) * SCORE_FOR_SINGLE_FIVE
+                end
             else
                 non_scoring_counter += 1
             end
@@ -87,11 +115,13 @@ class Game
             raise "Player lost the score for this turn!"
         else
             if non_scoring_dice > 0
-                user_selection = 'z'
+                user_selection = ''
+                
                 until user_selection == 'y' or user_selection == 'n'
                 print "Do you want to roll the non-scoring #{non_scoring_dice} dices?(y/n): "
                 user_selection = gets.chomp!.downcase
                 end
+                
                 if user_selection == 'y'
                     temp_player_dice_score += take_turn(player_id, non_scoring_dice)
                 elsif user_selection == 'n'
@@ -105,12 +135,16 @@ class Game
 =begin
 =end  
     def main_game
+        
+        # init required variables
         is_completed = false
         is_final_round = false
         turn_counter = 1
-        # TODO: add "start the game" condition
+        is_in_the_game = Array.new(@number_of_players, false) # flag to check if player has scored 300/+ for the first time
+        
         until is_completed
-            if is_final_round then "Final round" else puts "Turn: #{turn_counter}" end
+            
+            if is_final_round then puts "Final round" else puts "Turn: #{turn_counter}" end
             puts "--------"
             
             @number_of_players.times {
@@ -121,9 +155,12 @@ class Game
                     rescue
                         turn_score = 0
                     end
-                    if turn_score != 0
+                    # change the flag to true when a player scores 300 or above for the first time.
+                    if not is_in_the_game[player_id] and turn_score >= FIRST_TURN_MIN_SCORE
+                        is_in_the_game[player_id] = true
+                    end
+                    if turn_score != 0 and is_in_the_game[player_id]
                         @score[player_id] += turn_score
-                        
                     end
                 end
                 puts ""
@@ -135,7 +172,7 @@ class Game
                 is_completed = true
             end
             
-            if @score.max >= 900
+            if @score.max >= END_GAME_SCORE
                 is_final_round = true
             end
         
@@ -144,30 +181,30 @@ class Game
     end # of main_game
 end # of class
 
-
-
-want_to_test = true
+# variable use to test your scoring mechanism mannualy
+want_to_test = false
 
 
 if not want_to_test
     print "Enter number of players: "
     game_object = Game.new(gets.to_i)
 
-    if game_object.get_number_of_players > 1
+    if game_object.get_number_of_players >= MIN_PLAYERS_REQUIRED
         puts "starting the game"
         game_object.main_game
         puts "final scores are:"
         puts game_object.get_all_score
         #TODO: handle draw situation
-        puts "Winner of this game is: Player #{game_object.get_all_score.each_with_index.max[1]}"
+        puts "Winner of this game is: Player #{game_object.get_all_score.each_with_index.max[1] + 1}"
 
     else
         puts "Insufficient players to start the game ):"
     end
 else
+    # Testing code here
     game_object = Game.new(2)
-    puts game_object.score_calculator([4,6,3,3,3])
-# Testing code here
+    puts game_object.score_calculator([5,4,2,4,4])
+
 
 # puts game_object.get_number_of_players
 # x =game_object.roll_dice()

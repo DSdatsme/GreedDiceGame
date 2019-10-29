@@ -1,3 +1,4 @@
+# TODO: add unit tests (specs)
 
 ### Tweakable variables as per desired problem statement.
 
@@ -27,8 +28,10 @@ class Game
     # contains methods and vars which holds the state if the game.
     
     def initialize(number_of_players)
-        @number_of_players = set_number_of_players(number_of_players)
-        @score = Array.new(number_of_players, 0)    # for storing total score of all players inn that gaming session
+        @number_of_players = number_of_players
+        # @score = Array.new(number_of_players, 0)    # for storing total score of all players in that gaming session
+        @player_objects = Array.new(@number_of_players){Player.new}
+        
     end
 
     # getter for all score
@@ -36,11 +39,6 @@ class Game
         @score
     end
     
-    # setter for number_of_players
-    def set_number_of_players(number_of_players)
-        @number_of_players = number_of_players
-    end
-
     # getter for number_of_players
     def get_number_of_players
         @number_of_players
@@ -53,7 +51,7 @@ class Game
         set
     end
 
-    # gets you the score for a particular player
+    # [DEPRICATED] gets you the score for a particular player
     def get_total_score_for_player(player_id)
         @score[player_id]
     end
@@ -92,6 +90,17 @@ class Game
         return turn_score, non_scoring_counter
     end
 
+    def get_top_player
+        # returns two values. 
+        # top_player_id = index of the top player
+        # top_score = current score of the top player
+        top_player_object_id = @player_objects.max_by { |each_player|
+        each_player.get_player_score }
+        top_score = top_player_object_id.get_player_score
+        top_player_id = @player_objects.find_index(top_player_object_id)
+        return top_player_id, top_score
+    end
+
     def take_turn(player_id, turn_size=5)
 =begin
         INFO: 
@@ -109,7 +118,7 @@ class Game
         puts "Score in this round: #{temp_player_dice_score}"
 
         # @score[player_id] += temp_player_dice_score
-        puts "Total score: #{@score[player_id]}"
+        puts "Total score: #{@player_objects[player_id].get_player_score}"
 
         if temp_player_dice_score == 0
             raise "Player lost the score for this turn!"
@@ -140,7 +149,7 @@ class Game
         is_completed = false
         is_final_round = false
         turn_counter = 1
-        is_in_the_game = Array.new(@number_of_players, false) # flag to check if player has scored 300/+ for the first time
+        # is_in_the_game = Array.new(@number_of_players, false) # flag to check if player has scored 300/+ for the first time
         
         until is_completed
             
@@ -149,18 +158,19 @@ class Game
             
             @number_of_players.times {
                 |player_id|
-                if (@score.each_with_index.max[1] != player_id and is_final_round) or not is_final_round
+                # FIXME:
+                if (get_top_player[0] != player_id and is_final_round) or not is_final_round
                     begin
                         turn_score = take_turn(player_id)
                     rescue
                         turn_score = 0
                     end
                     # change the flag to true when a player scores 300 or above for the first time.
-                    if not is_in_the_game[player_id] and turn_score >= FIRST_TURN_MIN_SCORE
-                        is_in_the_game[player_id] = true
+                    if not @player_objects[player_id].get_is_in_the_game and turn_score >= FIRST_TURN_MIN_SCORE
+                        @player_objects[player_id].set_is_in_the_game(true)
                     end
-                    if turn_score != 0 and is_in_the_game[player_id]
-                        @score[player_id] += turn_score
+                    if turn_score != 0 and @player_objects[player_id].get_is_in_the_game
+                        @player_objects[player_id].set_player_score(@player_objects[player_id].get_player_score + turn_score) 
                     end
                 end
                 puts ""
@@ -172,7 +182,7 @@ class Game
                 is_completed = true
             end
             
-            if @score.max >= END_GAME_SCORE
+            if get_top_player[1] >= END_GAME_SCORE
                 is_final_round = true
             end
         
@@ -180,6 +190,36 @@ class Game
         end # of until
     end # of main_game
 end # of class
+
+class Player
+    
+    def initialize()
+        @score = 0    # for storing total score of a player
+        @is_in_the_game = false
+    end
+
+    # getter method for getting player's score
+    def get_player_score
+        @score
+    end
+
+    # setter method for updating player's score
+    def set_player_score(new_score)
+        @score = new_score
+    end
+
+    # setter for is_in_the_game flag
+    def set_is_in_the_game(new_value)
+        @is_in_the_game = new_value
+    end
+    
+    # getter for is_in_the_game flag
+    def get_is_in_the_game
+        @is_in_the_game
+    end
+end
+
+### script working starts from here
 
 # variable use to test your scoring mechanism mannualy
 want_to_test = false
@@ -195,7 +235,7 @@ if not want_to_test
         puts "final scores are:"
         puts game_object.get_all_score
         #TODO: handle draw situation
-        puts "Winner of this game is: Player #{game_object.get_all_score.each_with_index.max[1] + 1}"
+        puts "Winner of this game is: Player #{get_top_player[0] + 1}"
 
     else
         puts "Insufficient players to start the game ):"

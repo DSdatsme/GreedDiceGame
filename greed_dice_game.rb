@@ -51,11 +51,6 @@ class Game
         set
     end
 
-    # [DEPRICATED] gets you the score for a particular player
-    def get_total_score_for_player(player_id)
-        @score[player_id]
-    end
-
     # core scoring mechanism
     def score_calculator(dice_heads)
         turn_score = 0
@@ -117,7 +112,6 @@ class Game
         temp_player_dice_score, non_scoring_dice = score_calculator(temp_player_dice_result)
         puts "Score in this round: #{temp_player_dice_score}"
 
-        # @score[player_id] += temp_player_dice_score
         puts "Total score: #{@player_objects[player_id].get_player_score}"
 
         if temp_player_dice_score == 0
@@ -191,6 +185,7 @@ class Game
     end # of main_game
 end # of class
 
+
 class Player
     
     def initialize()
@@ -219,11 +214,10 @@ class Player
     end
 end
 
+
 ### script working starts from here
-
-# variable use to test your scoring mechanism mannualy
-
 if $0 == __FILE__
+    # variable use to test your scoring mechanism mannualy
     want_to_test = false
 
 

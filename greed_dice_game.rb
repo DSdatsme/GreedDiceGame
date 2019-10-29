@@ -3,7 +3,7 @@
 ### Tweakable variables as per desired problem statement.
 
 # score required to enter final round.
-END_GAME_SCORE= 3000
+END_GAME_SCORE= 300
 
 # score required from a player to start accumulating points.
 FIRST_TURN_MIN_SCORE = 300
@@ -36,7 +36,7 @@ class Game
 
     # getter for all score
     def get_all_score
-        @score
+        @player_objects.map{ |each_player| each_player.get_player_score}
     end
     
     # getter for number_of_players
@@ -172,8 +172,8 @@ class Game
                     if turn_score != 0 and @player_objects[player_id].get_is_in_the_game
                         @player_objects[player_id].set_player_score(@player_objects[player_id].get_player_score + turn_score) 
                     end
+                    puts ""
                 end
-                puts ""
             }
 
             turn_counter += 1
@@ -222,33 +222,35 @@ end
 ### script working starts from here
 
 # variable use to test your scoring mechanism mannualy
-want_to_test = false
+
+if $0 == __FILE__
+    want_to_test = false
 
 
-if not want_to_test
-    print "Enter number of players: "
-    game_object = Game.new(gets.to_i)
+    if not want_to_test
+        print "Enter number of players: "
+        game_object = Game.new(gets.to_i)
 
-    if game_object.get_number_of_players >= MIN_PLAYERS_REQUIRED
-        puts "starting the game"
-        game_object.main_game
-        puts "final scores are:"
-        puts game_object.get_all_score
-        #TODO: handle draw situation
-        puts "Winner of this game is: Player #{get_top_player[0] + 1}"
+        if game_object.get_number_of_players >= MIN_PLAYERS_REQUIRED
+            game_object.main_game
+            puts "final scoreboard:::"
+            puts game_object.get_all_score
+            #TODO: handle draw situation
+            puts "Winner of this game is: Player #{game_object.get_top_player[0] + 1}"
 
+        else
+            puts "Insufficient players to start the game ):"
+        end
     else
-        puts "Insufficient players to start the game ):"
+        # Testing code here
+        game_object = Game.new(2)
+        puts game_object.score_calculator([5,4,2,4,4])
+
+
+    # puts game_object.get_number_of_players
+    # x =game_object.roll_dice()
+    # puts "dice role gave #{x}"
+
+    # puts "final score: #{game_object.score_calculator(x)}"
     end
-else
-    # Testing code here
-    game_object = Game.new(2)
-    puts game_object.score_calculator([5,4,2,4,4])
-
-
-# puts game_object.get_number_of_players
-# x =game_object.roll_dice()
-# puts "dice role gave #{x}"
-
-# puts "final score: #{game_object.score_calculator(x)}"
 end

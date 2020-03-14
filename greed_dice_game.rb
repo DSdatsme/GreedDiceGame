@@ -1,9 +1,8 @@
-# TODO: add unit tests (specs)
 
 ### Tweakable variables as per desired problem statement.
 
 # score required to enter final round.
-END_GAME_SCORE= 300
+END_GAME_SCORE= 3000
 
 # score required from a player to start accumulating points.
 FIRST_TURN_MIN_SCORE = 300
@@ -152,7 +151,6 @@ class Game
             
             @number_of_players.times {
                 |player_id|
-                # FIXME:
                 if (get_top_player[0] != player_id and is_final_round) or not is_final_round
                     begin
                         turn_score = take_turn(player_id)
